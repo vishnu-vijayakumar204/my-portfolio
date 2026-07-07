@@ -6,10 +6,9 @@ const inputClasses =
 type Props = {
   project?: Project;
   action: (formData: FormData) => void;
-  error?: string;
 };
 
-export default function ProjectForm({ project, action, error }: Props) {
+export default function ProjectForm({ project, action }: Props) {
   return (
     <form action={action} className="mt-8 max-w-xl space-y-5">
       <div>
@@ -95,8 +94,6 @@ export default function ProjectForm({ project, action, error }: Props) {
           className={`${inputClasses} w-32`}
         />
       </div>
-
-      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
       <button
         type="submit"
