@@ -2,13 +2,7 @@ import { login } from "../actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminLoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ error?: string }>;
-}) {
-  const { error } = await searchParams;
-
+export default function AdminLoginPage() {
   return (
     <div className="mx-auto flex max-w-sm flex-col justify-center px-6 py-24">
       <h1 className="text-2xl font-semibold">Admin login</h1>
@@ -26,10 +20,6 @@ export default async function AdminLoginPage({
             className="mt-2 w-full rounded-lg border border-black/10 bg-transparent px-4 py-2.5 text-sm text-zinc-950 outline-none focus:border-indigo-500 dark:border-white/15 dark:text-zinc-50"
           />
         </div>
-
-        {error && (
-          <p className="text-sm text-red-600 dark:text-red-400">Incorrect password.</p>
-        )}
 
         <button
           type="submit"

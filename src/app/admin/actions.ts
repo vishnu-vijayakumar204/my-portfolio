@@ -12,7 +12,7 @@ export async function login(formData: FormData) {
   const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (typeof password !== "string" || !adminPassword || password !== adminPassword) {
-    redirect("/admin/login?error=1");
+    redirect(`/admin/login?error=${encodeURIComponent("Incorrect password.")}`);
   }
 
   const cookieStore = await cookies();
@@ -24,13 +24,13 @@ export async function login(formData: FormData) {
     maxAge: 60 * 60 * 24 * 7,
   });
 
-  redirect("/admin");
+  redirect(`/admin?success=${encodeURIComponent("Logged in successfully.")}`);
 }
 
 export async function logout() {
   const cookieStore = await cookies();
   cookieStore.delete(ADMIN_SESSION_COOKIE);
-  redirect("/admin/login");
+  redirect(`/admin/login?success=${encodeURIComponent("Logged out.")}`);
 }
 
 type ProjectInput = {
@@ -81,7 +81,7 @@ export async function createProject(formData: FormData) {
 
   revalidatePath("/");
   revalidatePath("/admin");
-  redirect("/admin");
+  redirect(`/admin?success=${encodeURIComponent("Project created.")}`);
 }
 
 export async function updateProject(id: string, formData: FormData) {
@@ -102,7 +102,7 @@ export async function updateProject(id: string, formData: FormData) {
 
   revalidatePath("/");
   revalidatePath("/admin");
-  redirect("/admin");
+  redirect(`/admin?success=${encodeURIComponent("Project updated.")}`);
 }
 
 export async function deleteProject(formData: FormData) {
@@ -112,9 +112,13 @@ export async function deleteProject(formData: FormData) {
   }
 
   const supabase = createAdminClient();
-  await supabase.from("projects").delete().eq("id", id);
+  const { error } = await supabase.from("projects").delete().eq("id", id);
+
+  if (error) {
+    redirect(`/admin?error=${encodeURIComponent(error.message)}`);
+  }
 
   revalidatePath("/");
   revalidatePath("/admin");
-  redirect("/admin");
+  redirect(`/admin?success=${encodeURIComponent("Project deleted.")}`);
 }

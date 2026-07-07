@@ -13,6 +13,7 @@ a password-gated `/admin` panel for managing project content.
   with `@theme inline` — there is no `tailwind.config.ts`)
 - Supabase (Postgres) for project data — `@supabase/supabase-js`
 - No auth provider — the admin panel uses a single shared password, not Supabase Auth
+- `sonner` for toast notifications (admin panel only)
 - Deploy target: Vercel (default for Next.js, not yet connected)
 
 ## Structure
@@ -52,8 +53,16 @@ a password-gated `/admin` panel for managing project content.
   comma-separated string and split/joined to/from the `text[]` column.
 - All mutations call `revalidatePath("/")` and `revalidatePath("/admin")` so
   edits show up on the public homepage immediately without a rebuild.
-- `DeleteProjectButton.tsx` is the only other client component — wraps the
-  delete form with a `window.confirm` guard.
+- `DeleteProjectButton.tsx` wraps the delete form with a `window.confirm` guard.
+- Every server action (login/logout/create/update/delete) redirects back with
+  a `?success=` or `?error=` query param carrying a human-readable message.
+  `src/app/admin/layout.tsx` renders sonner's `<Toaster />` plus a
+  `ToastListener` (`src/app/admin/ToastListener.tsx`, wrapped in `<Suspense>`
+  since it calls `useSearchParams`) that reads those params on mount, fires
+  `toast.success`/`toast.error`, then `router.replace`s the URL to strip them
+  so a refresh doesn't re-fire the toast. This is the only place success/error
+  feedback is shown — there's no more inline error text in the login or
+  project forms.
 
 ## Database (Supabase)
 
@@ -88,7 +97,8 @@ provider (e.g. Resend, SES, Formspree, Nodemailer + SMTP) inside that route hand
   (no class-based toggle, no light/dark switch UI).
 - Styling is utility-first Tailwind classes inline in JSX; no CSS modules.
 - Server components by default. Client components (`"use client"`): `Nav`
-  (menu toggle), `Contact` (form state), `DeleteProjectButton` (confirm guard).
+  (menu toggle), `Contact` (form state), `DeleteProjectButton` (confirm guard),
+  `ToastListener` (reads search params, fires toasts).
 - Project URL inputs (`live_url`/`repo_url`) are plain `type="text"`, not
   `type="url"` — the seed data uses `#` placeholders, which fail native HTML5
   URL validation.
