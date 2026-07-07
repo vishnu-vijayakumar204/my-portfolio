@@ -1,37 +1,5 @@
-type Project = {
-  title: string;
-  description: string;
-  tags: string[];
-  href: string;
-  repo: string;
-};
-
-const PROJECTS: Project[] = [
-  {
-    title: "Task Flow",
-    description:
-      "A collaborative task management app with real-time updates, drag-and-drop boards, and team workspaces.",
-    tags: ["Next.js", "TypeScript", "PostgreSQL"],
-    href: "#",
-    repo: "#",
-  },
-  {
-    title: "Marketwatch Dashboard",
-    description:
-      "A data visualization dashboard for tracking market trends, built with live charts and customizable widgets.",
-    tags: ["React", "D3.js", "Node.js"],
-    href: "#",
-    repo: "#",
-  },
-  {
-    title: "Recipe Finder",
-    description:
-      "A recipe discovery app that suggests meals based on ingredients you already have at home.",
-    tags: ["Next.js", "Tailwind CSS", "REST API"],
-    href: "#",
-    repo: "#",
-  },
-];
+import { createPublicClient } from "@/lib/supabase/public";
+import type { Project } from "@/lib/supabase/types";
 
 function ExternalLinkIcon() {
   return (
@@ -55,7 +23,14 @@ function GithubIcon() {
   );
 }
 
-export default function Projects() {
+export default async function Projects() {
+  const supabase = createPublicClient();
+  const { data: projects, error } = await supabase
+    .from("projects")
+    .select("*")
+    .order("sort_order", { ascending: true })
+    .returns<Project[]>();
+
   return (
     <section id="projects" className="mx-auto max-w-5xl px-6 py-24">
       <h2 className="text-sm font-medium tracking-wide text-indigo-600 uppercase dark:text-indigo-400">
@@ -65,10 +40,16 @@ export default function Projects() {
         A few things I&apos;ve built recently.
       </p>
 
+      {error && (
+        <p className="mt-10 text-sm text-red-600 dark:text-red-400">
+          Couldn&apos;t load projects right now.
+        </p>
+      )}
+
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {PROJECTS.map((project) => (
+        {(projects ?? []).map((project) => (
           <article
-            key={project.title}
+            key={project.id}
             className="flex flex-col rounded-2xl border border-black/10 p-6 transition-colors hover:border-black/20 dark:border-white/10 dark:hover:border-white/20"
           >
             <h3 className="text-lg font-semibold text-zinc-950 dark:text-zinc-50">
@@ -90,20 +71,24 @@ export default function Projects() {
             </ul>
 
             <div className="mt-5 flex gap-4 text-sm font-medium text-zinc-950 dark:text-zinc-50">
-              <a
-                href={project.href}
-                className="inline-flex items-center gap-1.5 hover:text-indigo-600 dark:hover:text-indigo-400"
-              >
-                <ExternalLinkIcon />
-                Live
-              </a>
-              <a
-                href={project.repo}
-                className="inline-flex items-center gap-1.5 hover:text-indigo-600 dark:hover:text-indigo-400"
-              >
-                <GithubIcon />
-                Code
-              </a>
+              {project.live_url && (
+                <a
+                  href={project.live_url}
+                  className="inline-flex items-center gap-1.5 hover:text-indigo-600 dark:hover:text-indigo-400"
+                >
+                  <ExternalLinkIcon />
+                  Live
+                </a>
+              )}
+              {project.repo_url && (
+                <a
+                  href={project.repo_url}
+                  className="inline-flex items-center gap-1.5 hover:text-indigo-600 dark:hover:text-indigo-400"
+                >
+                  <GithubIcon />
+                  Code
+                </a>
+              )}
             </div>
           </article>
         ))}
